@@ -7,13 +7,16 @@ require_relative 'peg'
 
 class GameWindow < Gosu::Window
 
+	INFINITY = 1.0 / 0.0
+	SUBSTEPS = 6
+
 	def initialize
 		super 1280, 800, false
 		self.caption = "Dragon Drop"
 		@fpscounter = FPSCounter.new(self)
 		@players = Array.new()
 		@pegs = Array.new()
-		pegImg = Gosu::Image.new(self, "bullet1.png", false ) 
+		@pegImg = Gosu::Image.new(self, "bullet1.png", false ) 
 
 		@player1_controls = {
 			:up => Gosu::Gp0Up,
@@ -26,16 +29,18 @@ class GameWindow < Gosu::Window
 			:record => Gosu::Gp0Button0,
 			:debug => Gosu::Gp0Button4
 		}
-		@player1 = Player.new(self, 1, @player1_controls)
-		@players.push(@player1)
+		#@player1 = Player.new(self, 1, @player1_controls)
+		#@players.push(@player1)
+		addPhysicsElements()
+		#addPlayerBodies()
 
-		@pegs.push(Peg.new(200,200, 30, 30, pegImg, self ))
+		#@pegs.push(Peg.new(200,200, 30, 30, pegImg, self ))
 
-		@space = CP::Space.new
+		#@space = CP::Space.new
 		#@space.damping = 0.8
-		@space.add_body(@player1.dragon.body)
-		@space.add_shape(@player1.dragon.shape)
-		@space.gravity = CP::Vec2.new(0.0, 50.0)
+		#@space.add_body(@player1.dragon.body)
+		#@space.add_shape(@player1.dragon.shape)
+		#@space.gravity = CP::Vec2.new(0.0, 50.0)
 	end
 
 	def update
@@ -43,18 +48,87 @@ class GameWindow < Gosu::Window
 		@players.each do |player|
 			player.update()
 		end
-		@space.step(1.0/60.0)
+		#SUBSTEPS.times do 
+			#@player1.dragon.shape.body.reset_forces
+			@space.step(1.0/60.0)
+		#end
 	end
 
 	def draw
 		@fpscounter.draw()
 		@players.each do |player|
 			player.draw()
+			#puts @player1.dragon.shape.body.p.x
+			#puts @player1.dragon.shape.body.p.y
 		end
 		@pegs.each do |peg|
 			peg.draw()
+			#puts peg.shape.body.p.x
+			#puts peg.shape.body.p.y
 		end
 	end
+
+	def addPhysicsElements
+		@space = CP::Space.new
+		@space.gravity = CP::Vec2.new(0.0, 100.0)
+		addPlayerBodies()
+		addPegBodies()
+
+		
+	end
+
+	def addPlayerBodies
+		@player1 = Player.new(self, 1, @player1_controls, createDragonBody())
+		@players.push(@player1)
+
+	end
+
+	def addPegBodies
+		shape = createPegBody
+		peg = Peg.new(805,600, 30, 30, @pegImg, self, shape )
+		@pegs.push(peg)
+		#@space.rehash_shape(shape)
+
+	end
+
+	def createDragonBody
+		body = CP::Body.new(5.0, 1000.0)
+		shape_array = [CP::Vec2.new(-25.0, -25.0), CP::Vec2.new(-25.0, 25.0), CP::Vec2.new(25.0, 25.0), CP::Vec2.new(25.0, -25.0)]
+		shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
+		shape.collision_type = :dragon
+		@space.add_body(body)
+		@space.add_shape(shape)
+
+		return shape	
+	end
+
+	def createPegBody
+		# body = CP::StaticBody.new
+		# shape_array = [CP::Vec2.new(0, 400), CP::Vec2.new(900, 400), CP::Vec2.new(900, 390), CP::Vec2.new(0, 390)]
+		# #shape = CP::Shape::Circle.new(body, 100, CP::Vec2.new(0,0))
+		
+		# shape_array = [CP::Vec2.new(0, 600), CP::Vec2.new(800, 600), CP::Vec2.new(800, 590), CP::Vec2.new(0, 590)]
+		# shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
+		# shape.collision_type = :floor
+		# @space.add_shape(shape)
+
+
+
+		body = CP::Body.new(INFINITY, INFINITY)
+		body.velocity_func() { 
+
+		}
+		shape = CP::Shape::Circle.new(body, 200, CP::Vec2.new(0,0))
+		#shape_array = [CP::Vec2.new(-50.0, -50.0), CP::Vec2.new(-50.0, 50.0), CP::Vec2.new(50.0, 50.0), CP::Vec2.new(50.0, -50.0)]
+		#shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
+		shape.collision_type = :peg
+		@space.add_body(body)
+		@space.add_shape(shape)
+
+		return shape
+	end
+
+
 
 end
 
