@@ -87,10 +87,18 @@ class GameWindow < Gosu::Window
 
 	def addPegBodies
 		#shape = createPegBody
-		peg = Peg.new(805,600, 100, 100, @pegImg, self, @space )
-		@pegs.push(peg)
+		#peg = Peg.new(805,600, 100, 100, @pegImg, self, @space )
+	#	@pegs.push(peg)
+		@pegs.push(makePeg(805, 600, 50))
+		@pegs.push(makePeg(500,600, 60))
+		@pegs.push(makePeg(870, 500, 40))
+		@pegs.push(makePeg(850, 400, 50))
 		#@space.rehash_shape(shape)
 
+	end
+
+	def makePeg(x, y, radius)
+		return Peg.new(x, y, radius*2, radius*2, @pegImg, self, @space)
 	end
 
 	# def createDragonBody

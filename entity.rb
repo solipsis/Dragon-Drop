@@ -36,7 +36,8 @@ class Entity
 		@shape.body.v = CP::Vec2.new(0.0, 0.0)
 
 		@shape.body.a = (3*Math::PI/2.0)
-		@shape.e = 0.9
+		@shape.e = 1.2
+		@shape.u = 1.0
 		# chipmunk stuff
 		#@body = CP::Body.new(10.0, 50.0)
 		#shape_array = [CP::Vec2.new(-25.0, -25.0), CP::Vec2.new(-25.0, 25.0), CP::Vec2.new(25.0, 1.0), CP::Vec2.new(25.0, -1.0)]
