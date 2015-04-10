@@ -15,7 +15,7 @@ class Entity
 	attr_accessor :shape
 
 
-	def initialize(x, y, width, height, img, gameWindow, shape)
+	def initialize(x, y, width, height, img, gameWindow, space)
 		@x = x
 		@y = y
 		@width = width
@@ -26,7 +26,10 @@ class Entity
 		#@y_scale = @height.to_f / @img.height.to_f
 		@x_scale = 1
 		@y_scale = 1
-		@shape = shape
+		@space = space
+
+		createShape()
+
 
 		warp(@x, @y)
 		#@shape.body.p = CP::Vec2.new(0, 200)
@@ -67,6 +70,10 @@ class Entity
 	end
 
 	def addCollisionShape
+
+	end
+
+	def createShape()
 
 	end
 end

@@ -5,12 +5,12 @@ class Player
 	attr_accessor :score
 	attr_accessor :dragon
 
-	def initialize(gameWindow, id, inputMap, shape)
+	def initialize(gameWindow, id, inputMap, space)
 		@inputMap = inputMap
 		@score = 0
 		@gameWindow = gameWindow
 		img = Gosu::Image.new(@gameWindow, "square.png", false)
-		@dragon = Dragon.new(800, 200, 50, 50, img, @gameWindow, shape)
+		@dragon = Dragon.new(800, 200, 200, 200, img, @gameWindow, space)
 	end
 
 	def draw

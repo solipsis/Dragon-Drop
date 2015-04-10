@@ -29,6 +29,8 @@ class GameWindow < Gosu::Window
 			:record => Gosu::Gp0Button0,
 			:debug => Gosu::Gp0Button4
 		}
+
+		@background = Gosu::Image.new(self, "bullet2.png", false)
 		#@player1 = Player.new(self, 1, @player1_controls)
 		#@players.push(@player1)
 		addPhysicsElements()
@@ -55,6 +57,7 @@ class GameWindow < Gosu::Window
 	end
 
 	def draw
+		@background.draw_rot(0, 0, 1, 0, 0.5, 0.5, 300, 300)
 		@fpscounter.draw()
 		@players.each do |player|
 			player.draw()
@@ -70,37 +73,36 @@ class GameWindow < Gosu::Window
 
 	def addPhysicsElements
 		@space = CP::Space.new
+		# puts @space.public_methods
 		@space.gravity = CP::Vec2.new(0.0, 100.0)
 		addPlayerBodies()
-		addPegBodies()
-
-		
+		addPegBodies()		
 	end
 
 	def addPlayerBodies
-		@player1 = Player.new(self, 1, @player1_controls, createDragonBody())
+		@player1 = Player.new(self, 1, @player1_controls, @space)
 		@players.push(@player1)
 
 	end
 
 	def addPegBodies
-		shape = createPegBody
-		peg = Peg.new(805,600, 30, 30, @pegImg, self, shape )
+		#shape = createPegBody
+		peg = Peg.new(805,600, 100, 100, @pegImg, self, @space )
 		@pegs.push(peg)
 		#@space.rehash_shape(shape)
 
 	end
 
-	def createDragonBody
-		body = CP::Body.new(5.0, 1000.0)
-		shape_array = [CP::Vec2.new(-25.0, -25.0), CP::Vec2.new(-25.0, 25.0), CP::Vec2.new(25.0, 25.0), CP::Vec2.new(25.0, -25.0)]
-		shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
-		shape.collision_type = :dragon
-		@space.add_body(body)
-		@space.add_shape(shape)
+	# def createDragonBody
+	# 	body = CP::Body.new(5.0, 1000.0)
+	# 	shape_array = [CP::Vec2.new(-100.0, -100.0), CP::Vec2.new(-100.0, 100.0), CP::Vec2.new(100.0, 100.0), CP::Vec2.new(100.0, -100.0)]
+	# 	shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
+	# 	shape.collision_type = :dragon
+	# 	@space.add_body(body)
+	# 	@space.add_shape(shape)
 
-		return shape	
-	end
+	# 	return shape	
+	# end
 
 	def createPegBody
 		# body = CP::StaticBody.new
@@ -118,7 +120,7 @@ class GameWindow < Gosu::Window
 		body.velocity_func() { 
 
 		}
-		shape = CP::Shape::Circle.new(body, 200, CP::Vec2.new(0,0))
+		shape = CP::Shape::Circle.new(body, 60, CP::Vec2.new(0,0))
 		#shape_array = [CP::Vec2.new(-50.0, -50.0), CP::Vec2.new(-50.0, 50.0), CP::Vec2.new(50.0, 50.0), CP::Vec2.new(50.0, -50.0)]
 		#shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
 		shape.collision_type = :peg
