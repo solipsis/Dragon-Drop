@@ -1,145 +1,288 @@
+#real dragon drop begins here
+
 require 'gosu'
 require 'chipmunk'
 require_relative 'fpscounter'
-require_relative 'player'
-require_relative 'entity'
+require_relative 'dragon'
 require_relative 'peg'
+require_relative 'player'
+require_relative 'boundary'
+require_relative 'scorezone'
+
 
 class GameWindow < Gosu::Window
 
-	INFINITY = 1.0 / 0.0
-	SUBSTEPS = 6
+
+	#***********************************************************************
+	# TODO:
+	# 
+	# 
+	#
+	# 
+	# => 5. dragon art
+	# 
+	# => 7.	fire particles
+	# 
+	#***********************************************************************
 
 	def initialize
 		super 1280, 800, false
 		self.caption = "Dragon Drop"
 		@fpscounter = FPSCounter.new(self)
+		@mouseViewer = MouseViewer.new(self)
+		@cursor = MouseCursor.new(self)
+		@scoreBoard = Gosu::Font.new(self, Gosu::default_font_name, 50) 
+
+		@pegImg = Gosu::Image.new(self, "bullet1.png", false)
+		#@peg = Peg.new(pegImg)
+
+		@background = Gosu::Image.new(self, "bullet2.png", false)
+		@boundaryImg = Gosu::Image.new(self, "square.png", false)
+		@scoreImg = Gosu::Image.new(self, "bullet2.png", false)
+
+		@space = CP::Space.new
+		@space.gravity = CP::Vec2.new(0.0, 50.0)
+
+		# TODO: lazy hack ass code
+		@space.add_collision_func(:dragon, :scorezone) do |a, b|
+			
+			score = -1
+			@scorezones.each do |scorezone|
+				if (scorezone.shape == b)
+					if (scorezone.active == true)
+						scorezone.active = false;
+						score = 3
+						changeActiveScorezone()
+					end
+				end
+			end
+
+ 			if (a == @players.at(0).dragon.shape)
+ 				@players.at(0).alive = false
+ 				@players.at(0).score += score
+ 			else
+ 				@players.at(1).alive = false
+ 				@players.at(1).score += score
+ 			end
+		end
+
 		@players = Array.new()
+		@boundaries = Array.new()
 		@pegs = Array.new()
-		@pegImg = Gosu::Image.new(self, "bullet1.png", false ) 
+		@scorezones = Array.new()
 
 		@player1_controls = {
 			:up => Gosu::Gp0Up,
 			:down => Gosu::Gp0Down,
 			:left => Gosu::Gp0Left,
 			:right => Gosu::Gp0Right,
-			:t1 => Gosu::Gp0Button2,
-			:t2 => Gosu::Gp0Button3,
-			:t3 => Gosu::Gp0Button1,
-			:record => Gosu::Gp0Button0,
-			:debug => Gosu::Gp0Button4
+			:fire => Gosu::Gp0Button2,
+			:action => Gosu::Gp0Button0,
+			:suicide => Gosu::Gp0Button3,
+		}
+		@player2_controls = {
+			:up => Gosu::Gp1Up,
+			:down => Gosu::Gp1Down,
+			:left => Gosu::Gp1Left,
+			:right => Gosu::Gp1Right,
+			:fire => Gosu::Gp1Button2,
+			:action => Gosu::Gp1Button0,
+			:suicide => Gosu::Gp1Button3,
 		}
 
-		@background = Gosu::Image.new(self, "bullet2.png", false)
-		#@player1 = Player.new(self, 1, @player1_controls)
-		#@players.push(@player1)
-		addPhysicsElements()
-		#addPlayerBodies()
+		@players.push(Player.new(@player1_controls, self))
+		@players.push(Player.new(@player2_controls, self))
+		
+		@players.at(1).dragon.warp(400, 10) # position player 2
 
-		#@pegs.push(Peg.new(200,200, 30, 30, pegImg, self ))
+		@players.each do |player|
+			addPhysicsObject(player.dragon.body, player.dragon.shape)
+		end
 
-		#@space = CP::Space.new
-		#@space.damping = 0.8
-		#@space.add_body(@player1.dragon.body)
-		#@space.add_shape(@player1.dragon.shape)
-		#@space.gravity = CP::Vec2.new(0.0, 50.0)
+		createBoundaries()
+		createPegs()
+		createScoreZones()
+		changeActiveScorezone()
+
+		@boundaries.each do |boundary|
+			addPhysicsObject(boundary.body, boundary.shape)
+		end
+
+		@pegs.each do |peg|
+			addPhysicsObject(peg.body, peg.shape)
+		end
+
+		@scorezones.each do |scorezone|
+			addPhysicsObject(scorezone.body, scorezone.shape)
+		end
+
+
+		
+		#addPhysicsObject(@peg.body, @peg.shape)
 	end
+
 
 	def update
-		@fpscounter.update()
+		@fpscounter.update
+
 		@players.each do |player|
-			player.update()
+			player.update
 		end
-		#SUBSTEPS.times do 
-			#@player1.dragon.shape.body.reset_forces
-			@space.step(1.0/60.0)
-		#end
+	
+		@space.step(1.0/60.0)
+
+		@players.each do |player|
+			player.dragon.shape.body.reset_forces()
+		end
+		
 	end
+
 
 	def draw
 		@background.draw_rot(0, 0, 1, 0, 0.5, 0.5, 300, 300)
-		@fpscounter.draw()
-		@players.each do |player|
-			player.draw()
-			#puts @player1.dragon.shape.body.p.x
-			#puts @player1.dragon.shape.body.p.y
-		end
-		@pegs.each do |peg|
-			peg.draw()
-			#puts peg.shape.body.p.x
-			#puts peg.shape.body.p.y
-		end
-	end
-
-	def addPhysicsElements
-		@space = CP::Space.new
-		# puts @space.public_methods
-		@space.gravity = CP::Vec2.new(0.0, 100.0)
-		addPlayerBodies()
-		addPegBodies()		
-	end
-
-	def addPlayerBodies
-		@player1 = Player.new(self, 1, @player1_controls, @space)
-		@players.push(@player1)
-
-	end
-
-	def addPegBodies
-		#shape = createPegBody
-		#peg = Peg.new(805,600, 100, 100, @pegImg, self, @space )
-	#	@pegs.push(peg)
-		@pegs.push(makePeg(805, 600, 50))
-		@pegs.push(makePeg(500,600, 60))
-		@pegs.push(makePeg(870, 500, 40))
-		@pegs.push(makePeg(850, 400, 50))
-		#@space.rehash_shape(shape)
-
-	end
-
-	def makePeg(x, y, radius)
-		return Peg.new(x, y, radius*2, radius*2, @pegImg, self, @space)
-	end
-
-	# def createDragonBody
-	# 	body = CP::Body.new(5.0, 1000.0)
-	# 	shape_array = [CP::Vec2.new(-100.0, -100.0), CP::Vec2.new(-100.0, 100.0), CP::Vec2.new(100.0, 100.0), CP::Vec2.new(100.0, -100.0)]
-	# 	shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
-	# 	shape.collision_type = :dragon
-	# 	@space.add_body(body)
-	# 	@space.add_shape(shape)
-
-	# 	return shape	
-	# end
-
-	def createPegBody
-		# body = CP::StaticBody.new
-		# shape_array = [CP::Vec2.new(0, 400), CP::Vec2.new(900, 400), CP::Vec2.new(900, 390), CP::Vec2.new(0, 390)]
-		# #shape = CP::Shape::Circle.new(body, 100, CP::Vec2.new(0,0))
+		@scoreBoard.draw("      " + @players.at(0).score.to_s + "                                                                                     " + @players.at(1).score.to_s, 10, 10, 40) 
+		@fpscounter.draw
 		
-		# shape_array = [CP::Vec2.new(0, 600), CP::Vec2.new(800, 600), CP::Vec2.new(800, 590), CP::Vec2.new(0, 590)]
-		# shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
-		# shape.collision_type = :floor
-		# @space.add_shape(shape)
+		@players.each do |player|
+			player.draw
+		end
 
+		@boundaries.each do |boundary|
+			boundary.draw
+		end
+		
+		@pegs.each do |peg|
+			peg.draw
+		end
 
+		@scorezones.each do |scorezone|
+			scorezone.draw
+		end
 
-		body = CP::Body.new(INFINITY, INFINITY)
-		body.velocity_func() { 
+		@mouseViewer.draw()
+		@cursor.draw(self.mouse_x, self.mouse_y)
+		#@peg.draw
+	end
 
-		}
-		shape = CP::Shape::Circle.new(body, 60, CP::Vec2.new(0,0))
-		#shape_array = [CP::Vec2.new(-50.0, -50.0), CP::Vec2.new(-50.0, 50.0), CP::Vec2.new(50.0, 50.0), CP::Vec2.new(50.0, -50.0)]
-		#shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
-		shape.collision_type = :peg
+	def addPhysicsObject(body, shape)
 		@space.add_body(body)
 		@space.add_shape(shape)
-
-		return shape
 	end
 
+	def createBoundaries()
+		size = 80
+		for x in 0..15 do
+			@boundaries.push(Boundary.new(@boundaryImg, (x * size) + (size/2), 1200, size))
+			@boundaries.push(Boundary.new(@boundaryImg, (x * size) + (size/2), -100, size))
+		end
+
+		for y in 0..15 do
+			@boundaries.push(Boundary.new(@boundaryImg, size/2, (y * size) + (size/2), size))
+			@boundaries.push(Boundary.new(@boundaryImg, (size/2) + 1200, (y * size) + (size/2), size))
+		end
+
+		size = 20
+		for x in 0..3 do
+			for y in 0..25 do
+				@boundaries.push(Boundary.new(@boundaryImg, (x * 250) + 270, (y*size) + 750, size))
+				#@boundaries.push(Boundary.new(@boundaryImg, (x * size) + (size/2), -100, size))
+			end
+		end
+	end
+
+	def changeActiveScorezone()
+		@scorezones.shuffle!
+		@scorezones.at(0).active = true
+	end
+
+	def createPegs()
+		#Struct.new("PegData", :x, :y, :radius)
+		@pegs.push(Peg.new(@pegImg, 400, 300, 20))
+		#@pegs.push(Peg.new(@pegImg, 200, 500, 80))
+		@pegs.push(Peg.new(@pegImg, 720, 290, 50))
+		#@pegs.push(Peg.new(@pegImg, 200, 700, 40))
+		@pegs.push(Peg.new(@pegImg, 600, 200, 10))
+		@pegs.push(Peg.new(@pegImg, 700, 600, 30))
+		@pegs.push(Peg.new(@pegImg, 500, 500, 30))
 
 
+		#left side
+		@pegs.push(Peg.new(@pegImg, 106, 238, 20))
+		@pegs.push(Peg.new(@pegImg, 206, 304, 20))
+		@pegs.push(Peg.new(@pegImg, 277, 206, 20))
+		@pegs.push(Peg.new(@pegImg, 522, 301, 20))
+		@pegs.push(Peg.new(@pegImg, 323, 439, 20))
+		@pegs.push(Peg.new(@pegImg, 380, 561, 20))
+		
+		@pegs.push(Peg.new(@pegImg, 451, 142, 20))
+		@pegs.push(Peg.new(@pegImg, 100, 398, 20))
+		@pegs.push(Peg.new(@pegImg, 200, 517, 20))
+		@pegs.push(Peg.new(@pegImg, 100, 637, 20))
+		@pegs.push(Peg.new(@pegImg, 258, 703, 20))
+
+		#right side
+		@pegs.push(Peg.new(@pegImg, 510, 680, 20))
+		@pegs.push(Peg.new(@pegImg, 590, 406, 20))
+		@pegs.push(Peg.new(@pegImg, 840, 493, 20))
+		 
+		@pegs.push(Peg.new(@pegImg, 880, 662, 20))
+		@pegs.push(Peg.new(@pegImg, 970, 200, 20))
+		@pegs.push(Peg.new(@pegImg, 1140, 287, 20))
+		@pegs.push(Peg.new(@pegImg, 1050, 480, 20))
+
+		@pegs.push(Peg.new(@pegImg, 705, 452, 20))
+		@pegs.push(Peg.new(@pegImg, 890, 336, 20))
+		@pegs.push(Peg.new(@pegImg, 1030, 355, 20))
+		@pegs.push(Peg.new(@pegImg, 1170, 600, 20))
+		@pegs.push(Peg.new(@pegImg, 1010, 705, 20))
+		@pegs.push(Peg.new(@pegImg, 807, 144, 20))
+
+	end
+
+	def createScoreZones()
+		@scorezones.push(Scorezone.new(@scoreImg, 150, 1000, 100, 100))
+		@scorezones.push(Scorezone.new(@scoreImg, 400, 1000, 100, 100))
+		@scorezones.push(Scorezone.new(@scoreImg, 650, 1000, 100, 100))
+		@scorezones.push(Scorezone.new(@scoreImg, 900, 1000, 100, 100))
+		@scorezones.push(Scorezone.new(@scoreImg, 1120, 1000, 100, 100))
+
+	end
+end
+
+class CollisionHandler
+  def begin(a, b, arbiter)
+  	puts a
+  	puts b
+  end
+  
+  def pre_solve(a, b)
+  end
+  
+  def post_solve(arbiter)
+  end
+  
+  def separate
+  end
+end
+
+
+class MouseCursor
+	def initialize(window)
+		@img = Gosu::Image.new(window, "circle_icon.png", false)
+		@delta_x = 0
+		@delta_y = 0
+		@prev_x = 0
+		@prev_y = 0
+	end
+
+	def draw(x, y)
+		@delta_x = (x - @prev_x) * 0.5
+		@delta_y = (y - @prev_y) * 0.5
+		@prev_x = x
+		@prev_y = y
+		@img.draw(x + @delta_x - 10, y + @delta_y - 10, 0)
+		#@img.draw(x - 10,y - 10, 1)
+	end
 end
 
 GameWindow.new.show()

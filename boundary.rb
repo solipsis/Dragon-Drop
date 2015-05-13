@@ -1,16 +1,14 @@
-class Peg
+class Boundary
 
 	attr_accessor :body, :shape
 
 	INFINITY = 1.0 / 0.0
 
 
-	def initialize(img, x, y, radius)
-
-		@radius = radius
+	def initialize(img, x, y, size)
 		@img = img
-		@width = @radius * 2
-		@height = @radius * 2
+		@width = size
+		@height = size
 
 		@x_scale = @width.to_f / @img.width.to_f
 		@y_scale = @height.to_f / @img.height.to_f
@@ -18,8 +16,9 @@ class Peg
 		@body = CP::Body.new(INFINITY, INFINITY)
 		@body.velocity_func() {}
 
-		@shape = CP::Shape::Circle.new(@body, @radius, CP::Vec2.new(0,0))
-		@shape.collision_type = :peg
+		shape_array = [CP::Vec2.new(-@width/2, -@height/2), CP::Vec2.new(-@width/2, @height/2), CP::Vec2.new(@width/2, @height/2), CP::Vec2.new(@width/2, -@height/2)]
+		@shape = CP::Shape::Poly.new(body, shape_array, CP::Vec2.new(0,0))
+		@shape.collision_type = :boundary
 		@shape.e = 0.9
 		@shape.u = 1.0
 

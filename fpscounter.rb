@@ -26,3 +26,24 @@ class FPSCounter
 
 	
 end
+
+class MouseViewer
+
+	
+	attr_reader :coordinates
+
+	def initialize(window) 
+		@font = Gosu::Font.new(window, Gosu::default_font_name, 20) 
+		@window = window
+	end
+
+	def update 
+		
+	end
+
+	def draw
+		@font.draw("x: " + @window.mouse_x.to_s + "  y: " + @window.mouse_y.to_s, 0, 700, 20)
+	end
+
+	
+end
