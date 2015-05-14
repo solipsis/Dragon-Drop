@@ -17,9 +17,29 @@ class Player
 		@particle_img = Gosu::Image.new(@gameWindow, "verySmallCircle.png", false)
 		@emitter = Emitter.new(-5000, 0, @particle_img)
 
+		@breathingFire = false
+
+
+
+		@fireEmitter = Emitter.new(-4000, 0, @particle_img) do 
+			self.emissionRate = 1
+			self.life = 30
+			self.alphaDecayRate = 3
+			self.green = 0
+			self.blue = 0
+			self.greenVariance = 50
+			self.blueVariance = 50
+			self.totalParticles = 200
+			self.angleVariance = 50
+		end
+
+
+
 		@deathEmitter = false
 
 		@deathTimer = 70
+
+		@fireTimer = 0
 
 	end
 
@@ -27,7 +47,9 @@ class Player
 		@dragon.draw()
 		if @deathTimer < 100
 			@emitter.draw()
-			puts "draw"
+		end
+		if @breathingFire || @fireTimer < 40
+			@fireEmitter.draw()
 		end
 	end
 
@@ -35,9 +57,14 @@ class Player
 		
 		
 		@deathTimer += 1
+		@fireTimer += 1
 		
-	
+		
+		@fireEmitter.update()
 
+		if @fireTimer > 1
+			@fireEmitter.disableSpawns = true
+		end
 		@emitter.update()
 		
 
@@ -66,9 +93,17 @@ class Player
 			end
 
 		# normal mode
-		else	
+		else
+			@breathingFire = false	
 			if @gameWindow.button_down?(@inputMap[:fire]) || @gameWindow.button_down?(Gosu::KbUp) then
 				@dragon.breatheFire()
+				@breathingFire = true
+				@fireEmitter.x = @dragon.shape.body.p.x - 10
+				@fireEmitter.y = @dragon.shape.body.p.y - 10
+				@fireTimer = 0
+				@fireEmitter.disableSpawns = false
+				@fireEmitter.angle = @dragon.shape.body.a.radians_to_gosu
+				#puts @dragon.shape.body.a.radians_to_gosu
 			end
 			if @gameWindow.button_down?(@inputMap[:suicide])  then
 				@alive = false

@@ -9,6 +9,8 @@ class Emitter
 	attr_accessor :lifeVariance, :angle, :angleVariance, :emissionRate, :scale
 	attr_accessor :additive
 	attr_accessor :alphaDecayRate
+	attr_accessor :x, :y
+	attr_accessor :disableSpawns
 
 	def initialize(x, y, img, &block)
 		#default settings
@@ -31,6 +33,8 @@ class Emitter
 		@additive = true
 
 
+
+		@disableSpawns = false
 
 		@pool = Array.new()
 		@img = img
@@ -95,6 +99,8 @@ class Emitter
 
 	#set the particles initial value
 	def initParticle(p)
+
+		
 		@angle = (@angle + rand(-@angleVariance..@angleVariance))
 		#@angle = 90
 		@vel_x = @speed * Math.cos(angle * Math::PI / 180)
@@ -113,6 +119,10 @@ class Emitter
 		p.color = @color.dup
 		p.scale = @scale
 		p.alphaDecayRate = @alphaDecayRate
+		if (disableSpawns)
+			p.life = 0
+			p.alphaDecayRate = 500
+		end
 	end
 
 	#draw the particles
