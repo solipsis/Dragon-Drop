@@ -8,6 +8,8 @@ require_relative 'peg'
 require_relative 'player'
 require_relative 'boundary'
 require_relative 'scorezone'
+require_relative 'emitter'
+require_relative 'particle'
 
 
 class GameWindow < Gosu::Window
@@ -32,6 +34,11 @@ class GameWindow < Gosu::Window
 		@mouseViewer = MouseViewer.new(self)
 		@cursor = MouseCursor.new(self)
 		@scoreBoard = Gosu::Font.new(self, Gosu::default_font_name, 50) 
+
+
+		@particle_img = Gosu::Image.new(self, "verySmallCircle.png", false)
+		@emitter = Emitter.new(-2000, 200, @particle_img)
+
 
 		@pegImg = Gosu::Image.new(self, "bullet1.png", false)
 		#@peg = Peg.new(pegImg)
@@ -59,9 +66,11 @@ class GameWindow < Gosu::Window
 
  			if (a == @players.at(0).dragon.shape)
  				@players.at(0).alive = false
+ 				@players.at(0).deathEmitter = true
  				@players.at(0).score += score
  			else
  				@players.at(1).alive = false
+ 				@players.at(1).deathEmitter = true
  				@players.at(1).score += score
  			end
 		end
@@ -135,6 +144,7 @@ class GameWindow < Gosu::Window
 			player.dragon.shape.body.reset_forces()
 		end
 		
+		@emitter.update
 	end
 
 
@@ -161,7 +171,8 @@ class GameWindow < Gosu::Window
 
 		@mouseViewer.draw()
 		@cursor.draw(self.mouse_x, self.mouse_y)
-		#@peg.draw
+		
+		@emitter.draw
 	end
 
 	def addPhysicsObject(body, shape)

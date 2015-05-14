@@ -3,6 +3,7 @@ class Player
 	attr_accessor :score
 	attr_accessor :dragon
 	attr_accessor :alive
+	attr_accessor :deathEmitter
 
 	def initialize(inputMap, gameWindow)
 		@inputMap = inputMap
@@ -13,16 +14,36 @@ class Player
 
 		@alive = false
 
+		@particle_img = Gosu::Image.new(@gameWindow, "verySmallCircle.png", false)
+		@emitter = Emitter.new(-5000, 0, @particle_img)
+
+		@deathEmitter = false
+
+		@deathTimer = 70
+
 	end
 
 	def draw
 		@dragon.draw()
+		if @deathTimer < 100
+			@emitter.draw()
+			puts "draw"
+		end
 	end
 
 	def update
+		
+		
+		@deathTimer += 1
+		
+	
+
+		@emitter.update()
+		
 
 		# Positioning mode
 		if (@alive == false)
+
 			if @gameWindow.button_down?(@inputMap[:left]) || @gameWindow.button_down?(Gosu::KbLeft) then				
 				@dragon.moveLeft()
 			end
@@ -37,6 +58,13 @@ class Player
 
 			@dragon.shape.body.p.y = 40
 			@dragon.shape.body.a += 0.01
+
+			if (@deathEmitter == true)
+				@deathTimer = 0
+				@deathEmitter = false
+				@emitter = Emitter.new(@dragon.shape.body.p.x, @dragon.shape.body.p.y, @particle_img)
+			end
+
 		# normal mode
 		else	
 			if @gameWindow.button_down?(@inputMap[:fire]) || @gameWindow.button_down?(Gosu::KbUp) then
