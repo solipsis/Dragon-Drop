@@ -40,6 +40,9 @@ class GameWindow < Gosu::Window
 		@emitter = Emitter.new(-2000, 200, @particle_img)
 
 
+		@playerImg1 = Gosu::Image.new(self, "square2.png")
+		@playerImg2 = Gosu::Image.new(self, "square.png")
+
 		@pegImg = Gosu::Image.new(self, "bullet1.png", false)
 		#@peg = Peg.new(pegImg)
 
@@ -99,8 +102,8 @@ class GameWindow < Gosu::Window
 			:suicide => Gosu::Gp1Button3,
 		}
 
-		@players.push(Player.new(@player1_controls, self))
-		@players.push(Player.new(@player2_controls, self))
+		@players.push(Player.new(@player1_controls, self, @playerImg1))
+		@players.push(Player.new(@player2_controls, self, @playerImg2))
 		
 		@players.at(1).dragon.warp(400, 10) # position player 2
 

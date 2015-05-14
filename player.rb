@@ -5,11 +5,11 @@ class Player
 	attr_accessor :alive
 	attr_accessor :deathEmitter
 
-	def initialize(inputMap, gameWindow)
+	def initialize(inputMap, gameWindow, img)
 		@inputMap = inputMap
 		@gameWindow = gameWindow
 		@score = 0
-		img = Gosu::Image.new(@gameWindow, "square.png", false)
+		#img = Gosu::Image.new(@gameWindow, "square2.png", false)
 		@dragon = Dragon.new(img)
 
 		@alive = false
