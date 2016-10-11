@@ -40,8 +40,8 @@ class GameWindow < Gosu::Window
 		@emitter = Emitter.new(-2000, 200, @particle_img)
 
 
-		@playerImg1 = Gosu::Image.new(self, "square2.png")
-		@playerImg2 = Gosu::Image.new(self, "square.png")
+		@playerImg1 = Gosu::Image.new(self, "a12.png")
+		@playerImg2 = Gosu::Image.new(self, "a1.png")
 
 		@pegImg = Gosu::Image.new(self, "bullet1.png", false)
 		#@peg = Peg.new(pegImg)

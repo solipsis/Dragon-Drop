@@ -29,7 +29,7 @@ class Player
 			self.blue = 0
 			self.greenVariance = 50
 			self.blueVariance = 50
-			self.totalParticles = 200
+			self.totalParticles = 300
 			self.angleVariance = 50
 		end
 

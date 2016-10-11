@@ -6,12 +6,12 @@ class Dragon
 
 	def initialize(img)
 
-		@width = 60
-		@height = 60
+		@width = 55
+		@height = 55
 		@img = img
 
-		@x_scale = @width.to_f / @img.width.to_f
-		@y_scale = @height.to_f / @img.height.to_f
+		@x_scale = (@width.to_f / @img.width.to_f) + 0.07
+		@y_scale = (@height.to_f / @img.height.to_f) + 0.07
 
 		@body = CP::Body.new(5.0, 1000.0)
 		shape_array = [CP::Vec2.new(-@width/2, -@height/2), CP::Vec2.new(-@width/2, @height/2), CP::Vec2.new(@width/2, @height/2), CP::Vec2.new(@width/2, -@height/2)]
